@@ -1,4 +1,4 @@
 hooktest
 ========
 
-git webhook test for jekyll
+git webhook test
