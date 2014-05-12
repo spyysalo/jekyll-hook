@@ -12,6 +12,9 @@ from email.mime.text import MIMEText
 from flask import Flask
 from flask import request
 
+# port to listen to
+PORT = 5836
+
 # directory to log github webhook events to. Set LOG_DIR = None to
 # disable event logging.
 LOG_DIR='events'
@@ -142,4 +145,4 @@ def event():
 if __name__ == '__main__':
     if DEBUG:
         app.debug = True
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=PORT)
