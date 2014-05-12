@@ -28,7 +28,7 @@ SCRIPT_DIR = 'scripts'
 # Warning: never leave DEBUG = True when deploying: this flag is
 # propagated to Flask app debug, which can allow for arbitrary code
 # execution.
-DEBUG = True
+DEBUG = False
 
 # configure logging
 if DEBUG:
