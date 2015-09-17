@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 from flask import Flask
 from flask import request
 
-from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR, SMTP_SERVER
+from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR, SMTP_SERVER, LISTEN_BRANCHES
 
 # Warning: never leave DEBUG = True when deploying: this flag is
 # propagated to Flask app debug, which can allow for arbitrary code
@@ -119,6 +119,11 @@ def run_scripts(directory=SCRIPT_DIR):
 @app.route('/', methods=['POST'])
 def event():
     data = load_json(request.data)
+
+    if data["ref"] not in LISTEN_BRANCHES:
+        #This is probably the gh-pages push resulting from the previous run of this script, ignore
+        logging.info("Ignoring push on branch %s"%str(data["ref"]))
+        return "OK"
     
     fn = log_event(pretty_print_json(data))
 

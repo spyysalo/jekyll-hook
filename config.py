@@ -17,6 +17,8 @@ SMTP_SERVER = 'someserver.com'
 # disable scripts.
 SCRIPT_DIR = 'scripts'
 
+# branches on whose pushes we should react
+LISTEN_BRANCHES=('refs/heads/pages-source',)
 
 ###################
 # override defaults with local values, if any
