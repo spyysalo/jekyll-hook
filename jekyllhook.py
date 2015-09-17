@@ -12,21 +12,7 @@ from email.mime.text import MIMEText
 from flask import Flask
 from flask import request
 
-# port to listen to
-PORT = 5836
-
-# directory to log github webhook events to. Set LOG_DIR = None to
-# disable event logging.
-LOG_DIR='events'
-
-# sender and receiver for email notifications. Set EMAIL_RECEIVER =
-# None to disable email notifications.
-EMAIL_SENDER = 'sampo.pyysalo@gmail.com'
-EMAIL_RECEIVER = 'sampo.pyysalo@gmail.com'
-
-# directory where to run scripts from. Set SCRIPT_DIR = None to
-# disable scripts.
-SCRIPT_DIR = 'scripts'
+from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR
 
 # Warning: never leave DEBUG = True when deploying: this flag is
 # propagated to Flask app debug, which can allow for arbitrary code
@@ -75,7 +61,7 @@ def mail_file(fn, subject, sender=EMAIL_SENDER, receiver=EMAIL_RECEIVER):
     msg['From'] = sender
     msg['To'] = receiver
 
-    s = smtplib.SMTP('localhost')
+    s = smtplib.SMTP(SMTP_SERVER)
     s.sendmail(sender, [receiver], msg.as_string())
     s.quit()
 
@@ -136,9 +122,9 @@ def event():
     
     fn = log_event(pretty_print_json(data))
 
-    send_email(fn, data)
-
     run_scripts()
+
+    send_email(fn, data)
 
     return "OK"
 
