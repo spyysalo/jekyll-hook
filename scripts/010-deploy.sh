@@ -13,15 +13,16 @@ SOURCE_BRANCH='pages-source'
 TARGET_REPO='target'
 TARGET_BRANCH='gh-pages'
 
-TMP_DIR='_tmp_site_copy'
+TMP_DIR=$(realpath $(mktemp -d --tmpdir=.))
 
 # pull source
 cd $SOURCE_REPO
-git checkout $SOURCE_BRANCH
+#git checkout $SOURCE_BRANCH
 git pull
 
 # build site (ends up in _site)
-jekyll build
+#jekyll build
+/var/lib/gems/2.0.0/gems/jekyll-2.5.3/bin/jekyll build
 
 # copy site to temporary directory
 cd -
@@ -30,7 +31,7 @@ cp -R $SOURCE_REPO/_site $TMP_DIR
 
 # switch to target repo and clear
 cd $TARGET_REPO
-git checkout $TARGET_BRANCH
+#git checkout $TARGET_BRANCH
 rm -rf *
 
 # copy in and remove temporary data
