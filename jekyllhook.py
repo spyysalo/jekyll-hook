@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 from flask import Flask
 from flask import request
 
-from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR
+from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR, SMTP_SERVER
 
 # Warning: never leave DEBUG = True when deploying: this flag is
 # propagated to Flask app debug, which can allow for arbitrary code
