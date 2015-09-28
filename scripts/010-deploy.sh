@@ -21,7 +21,9 @@ cd $SOURCE_REPO
 git pull
 
 # build site (ends up in _site)
-jekyll build
+
+## Note that arguments of this script are passed to jekyll, this is used to call --full-rebuild
+jekyll build $*
 # --full-rebuild
 #/var/lib/gems/2.0.0/gems/jekyll-2.5.3/bin/jekyll build
 

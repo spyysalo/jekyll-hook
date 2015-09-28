@@ -97,30 +97,32 @@ def load_json(source):
     return data
 
 def run_script(script):
-    logging.info('running {}'.format(script))
+    """script: list of arguments"""
+    script_txt=u" ".join(script)
+    logging.info('running {}'.format(script_txt))
     try:
         p = subprocess.Popen(script, stdout=subprocess.PIPE, 
                              stderr=subprocess.PIPE)
         out, err = p.communicate() 
     except Exception, e:
-        logging.error('failed to run {}: {}'.format(script, e))
+        logging.error('failed to run {}: {}'.format(script_txt, e))
         raise
 
     if out:
-        logging.info('{}:OUT: {}'.format(script, out))
+        logging.info('{}:OUT: {}'.format(script_txt, out))
     if err:
-        logging.error('{}:ERR: {}'.format(script, err))
+        logging.error('{}:ERR: {}'.format(script_txt, err))
 
-    logging.info('completed {}'.format(script))
+    logging.info('completed {}'.format(script_txt))
 
-def run_scripts(directory=SCRIPT_DIR):
+def run_scripts(args=[],directory=SCRIPT_DIR):
     if directory is None:
         return None
 
     scripts = glob(os.path.join(directory, '*.sh'))
 
     for script in scripts:
-        run_script(script)
+        run_script([script]+args)
 
 @app.route('/', methods=['POST'])
 def event():
@@ -133,7 +135,13 @@ def event():
     
     fn = log_event(pretty_print_json(data))
 
-    run_scripts()
+    #Check whether we want to have any specific args
+    args=[]
+    if any(commit["added"]+commit["removed"] for commit in data["commits"]):
+        logging.info("Detected added/removed files, will run all scripts with --full-rebuild")
+        args.append("--full-rebuild")
+
+    run_scripts(args=args)
 
     send_email(fn, data)
 
