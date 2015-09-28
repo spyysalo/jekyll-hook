@@ -14,6 +14,12 @@ from flask import request
 
 from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR, SMTP_SERVER, LISTEN_BRANCHES
 
+
+### CONFIG
+# General config is in config.py
+# local values (email addresses and smtp server): create config_site.py and set them there. Don't push this file into git.
+
+
 # Warning: never leave DEBUG = True when deploying: this flag is
 # propagated to Flask app debug, which can allow for arbitrary code
 # execution.
