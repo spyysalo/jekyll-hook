@@ -12,21 +12,13 @@ from email.mime.text import MIMEText
 from flask import Flask
 from flask import request
 
-# port to listen to
-PORT = 5836
+from config import PORT, LOG_DIR, EMAIL_SENDER, EMAIL_RECEIVER, SCRIPT_DIR, SMTP_SERVER, LISTEN_BRANCHES
 
-# directory to log github webhook events to. Set LOG_DIR = None to
-# disable event logging.
-LOG_DIR='events'
 
-# sender and receiver for email notifications. Set EMAIL_RECEIVER =
-# None to disable email notifications.
-EMAIL_SENDER = 'sampo.pyysalo@gmail.com'
-EMAIL_RECEIVER = 'sampo.pyysalo@gmail.com'
+### CONFIG
+# General config is in config.py
+# local values (email addresses and smtp server): create config_site.py and set them there. Don't push this file into git.
 
-# directory where to run scripts from. Set SCRIPT_DIR = None to
-# disable scripts.
-SCRIPT_DIR = 'scripts'
 
 # Warning: never leave DEBUG = True when deploying: this flag is
 # propagated to Flask app debug, which can allow for arbitrary code
@@ -75,7 +67,7 @@ def mail_file(fn, subject, sender=EMAIL_SENDER, receiver=EMAIL_RECEIVER):
     msg['From'] = sender
     msg['To'] = receiver
 
-    s = smtplib.SMTP('localhost')
+    s = smtplib.SMTP(SMTP_SERVER)
     s.sendmail(sender, [receiver], msg.as_string())
     s.quit()
 
@@ -105,40 +97,53 @@ def load_json(source):
     return data
 
 def run_script(script):
-    logging.info('running {}'.format(script))
+    """script: list of arguments"""
+    script_txt=u" ".join(script)
+    logging.info('running {}'.format(script_txt))
     try:
         p = subprocess.Popen(script, stdout=subprocess.PIPE, 
                              stderr=subprocess.PIPE)
         out, err = p.communicate() 
     except Exception, e:
-        logging.error('failed to run {}: {}'.format(script, e))
+        logging.error('failed to run {}: {}'.format(script_txt, e))
         raise
 
     if out:
-        logging.info('{}:OUT: {}'.format(script, out))
+        logging.info('{}:OUT: {}'.format(script_txt, out))
     if err:
-        logging.error('{}:ERR: {}'.format(script, err))
+        logging.error('{}:ERR: {}'.format(script_txt, err))
 
-    logging.info('completed {}'.format(script))
+    logging.info('completed {}'.format(script_txt))
 
-def run_scripts(directory=SCRIPT_DIR):
+def run_scripts(args=[],directory=SCRIPT_DIR):
     if directory is None:
         return None
 
     scripts = glob(os.path.join(directory, '*.sh'))
 
     for script in scripts:
-        run_script(script)
+        run_script([script]+args)
 
 @app.route('/', methods=['POST'])
 def event():
     data = load_json(request.data)
+
+    if data["ref"] not in LISTEN_BRANCHES:
+        #This is probably the gh-pages push resulting from the previous run of this script, ignore
+        logging.info("Ignoring push on branch %s"%str(data["ref"]))
+        return "OK"
     
     fn = log_event(pretty_print_json(data))
 
-    send_email(fn, data)
+    #Check whether we want to have any specific args
+    args=[]
+    if any(commit["added"]+commit["removed"] for commit in data["commits"]):
+        logging.info("Detected added/removed files, will run all scripts with --full-rebuild")
+        args.append("--full-rebuild")
 
-    run_scripts()
+    run_scripts(args=args)
+
+    send_email(fn, data)
 
     return "OK"
 
